@@ -45,5 +45,9 @@ export const List = styled.ul`
     justify-content: space-between;
     align-items: center;
     color: #fff;
+
+    a {
+      color: #fff;
+    }
   }
 `
