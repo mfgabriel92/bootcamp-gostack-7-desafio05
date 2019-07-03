@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import { Spinner, Header } from './styles'
+import { Spinner, Header, Issues } from './styles'
 import Container from '../../components/Container'
 import Loading from '../../components/Loading'
 import Api from '../../services/Api'
@@ -54,6 +54,23 @@ class Repository extends Component {
           <h3>{repository.full_name}</h3>
           <p>{repository.description}</p>
         </Header>
+
+        <Issues>
+          {issues.map(issue => (
+            <li key={String(issue.id)}>
+              <img src={issue.user.avatar_url} alt={issue.user.login} />
+              <div>
+                <strong>
+                  <a href={issue.html_url}>{issue.title}</a>
+                  {issue.labels.map(label => (
+                    <span key={String(label.id)}>{label.name}</span>
+                  ))}
+                </strong>
+                <p>{issue.user.login}</p>
+              </div>
+            </li>
+          ))}
+        </Issues>
       </Container>
     )
   }
