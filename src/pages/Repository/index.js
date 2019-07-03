@@ -1,4 +1,8 @@
 import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import { Spinner, Header } from './styles'
+import Container from '../../components/Container'
+import Loading from '../../components/Loading'
 import Api from '../../services/Api'
 
 class Repository extends Component {
@@ -32,7 +36,26 @@ class Repository extends Component {
   }
 
   render() {
-    return <></>
+    const { repository, issues, loading } = this.state
+
+    if (loading) {
+      return (
+        <Spinner>
+          <Loading loading={loading} />
+        </Spinner>
+      )
+    }
+
+    return (
+      <Container>
+        <Header>
+          <Link to="/">Back</Link>
+          <img src={repository.owner.avatar_url} alt={repository.owner.login} />
+          <h3>{repository.full_name}</h3>
+          <p>{repository.description}</p>
+        </Header>
+      </Container>
+    )
   }
 }
 
