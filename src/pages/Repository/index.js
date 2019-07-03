@@ -1,15 +1,19 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import { Spinner, Header, Issues } from './styles'
+import { Spinner, Header, Filter, Issues, Pagination } from './styles'
 import Container from '../../components/Container'
 import Loading from '../../components/Loading'
+import Button from '../../components/Button'
 import Api from '../../services/Api'
 
 class Repository extends Component {
   state = {
     repository: {},
     issues: {},
-    loading: true
+    state: 'open',
+    page: 1,
+    loading: true,
+    issuesLoading: false
   }
 
   async componentDidMount() {
@@ -18,11 +22,14 @@ class Repository extends Component {
     } = this.props
     const repo = decodeURIComponent(params.name)
 
+    const { page, state } = this.state
+
     const [repository, issues] = await Promise.all([
       Api.get(`/repos/${repo}`),
       Api.get(`/repos/${repo}/issues`, {
         params: {
-          state: 'open',
+          state,
+          page,
           per_page: 5
         }
       })
@@ -35,8 +42,54 @@ class Repository extends Component {
     })
   }
 
+  async componentDidUpdate(_, prevState) {
+    const { page, state } = this.state
+
+    if (page !== prevState.page || state !== prevState.state) {
+      this.setState({ issuesLoading: true })
+
+      const { repository } = this.state
+
+      const { data } = await Api.get(`/repos/${repository.full_name}/issues`, {
+        params: {
+          state,
+          page,
+          per_page: 5
+        }
+      })
+
+      this.setState({
+        issues: data,
+        issuesLoading: false
+      })
+    }
+  }
+
+  handleOnFilter = async e => {
+    this.setState({
+      state: e.target.value
+    })
+  }
+
+  handlePagination = action => {
+    const { page } = this.state
+
+    switch (action) {
+      case 'previous':
+        if (page > 1) {
+          this.setState({ page: this.state.page - 1 })
+        }
+        break
+      case 'next':
+        this.setState({ page: this.state.page + 1 })
+        break
+      default:
+        break
+    }
+  }
+
   render() {
-    const { repository, issues, loading } = this.state
+    const { repository, issues, loading, issuesLoading, page } = this.state
 
     if (loading) {
       return (
@@ -55,6 +108,12 @@ class Repository extends Component {
           <p>{repository.description}</p>
         </Header>
 
+        <Filter onChange={this.handleOnFilter} defaultValue="open">
+          <option value="all">All</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </Filter>
+
         <Issues>
           {issues.map(issue => (
             <li key={String(issue.id)}>
@@ -71,6 +130,23 @@ class Repository extends Component {
             </li>
           ))}
         </Issues>
+
+        <Pagination>
+          <Button
+            disabled={page === 1}
+            loading={issuesLoading}
+            text="Previous"
+            onClick={() => this.handlePagination('previous')}
+            type="button"
+          />
+          <span>{page}</span>
+          <Button
+            loading={issuesLoading}
+            text="Next"
+            onClick={() => this.handlePagination('next')}
+            type="button"
+          />
+        </Pagination>
       </Container>
     )
   }

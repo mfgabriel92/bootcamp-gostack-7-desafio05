@@ -9,9 +9,10 @@ const rotation = keyframes`
     transform: rotate(360deg)
   }
 `
-export const Button = styled.button.attrs(props => ({
-  type: 'submit',
-  disabled: props.loading
+export const RegularButton = styled.button.attrs(props => ({
+  type: props.type,
+  disabled: props.loading,
+  onclick: props.onClick
 }))`
   background: #5e0e9e;
   color: #fff;
